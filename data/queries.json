@@ -1,0 +1,86 @@
+[
+  {
+    "session": "paris-tokyo-trip",
+    "turns": [
+      "I want to fly from Paris to Tokyo on the first Saturday of next month, 2 passengers in economy. What are my options?",
+      "Great, and what will the weather be like in Tokyo when I land? Should I pack an umbrella?",
+      "What are the must-see attractions near the center of Tokyo?"
+    ]
+  },
+  {
+    "session": "lisbon-weekend",
+    "turns": [
+      "I'm going to Lisbon in 5 days for a 3-night stay, 2 guests. Find me a hotel under 180 EUR per night, at least 3 stars.",
+      "How much would 600 EUR be in US dollars for my spending money?"
+    ]
+  },
+  {
+    "session": "rome-attractions",
+    "turns": [
+      "What should I visit in Rome? I have two days."
+    ]
+  },
+  {
+    "session": "budget-currency",
+    "turns": [
+      "How much is 1500 GBP in Japanese yen right now?"
+    ]
+  },
+  {
+    "session": "visa-question",
+    "turns": [
+      "Do French citizens need a visa to visit Japan for tourism?"
+    ]
+  },
+  {
+    "session": "frustrated-wrong-city",
+    "turns": [
+      "Find me flights from Montreal to Toronto in 3 weeks, business class.",
+      "No, I said TOKYO, not Toronto! I clearly wrote Tokyo. Please search again from Montreal to Tokyo, same date, business class.",
+      "Finally. This took way longer than it should have. Which of these is the fastest option?"
+    ]
+  },
+  {
+    "session": "frustrated-past-dates",
+    "turns": [
+      "Book me a hotel in Barcelona from 2024-03-10 to 2024-03-14 for 2 people.",
+      "Why can't you just do it? This is so frustrating, other assistants manage fine. Use the same dates in 2 months then.",
+      "Ok that works, thanks."
+    ]
+  },
+  {
+    "session": "frustrated-vague-answer",
+    "turns": [
+      "What's the weather in Reykjavik next week?",
+      "That's useless, I asked about NEXT week, not tomorrow. I need the forecast for the whole of next week so I can decide whether to book the northern lights tour.",
+      "You're still not giving me what I asked for. Just tell me if it will rain next week or not."
+    ]
+  },
+  {
+    "session": "happy-planner",
+    "turns": [
+      "Plan a 4-day trip to Barcelona for 2 people starting in 3 weeks: flights from London, a 4-star hotel, and the weather forecast.",
+      "Perfect, that's exactly what I needed. Thank you!"
+    ]
+  },
+  {
+    "session": "no-tool-needed",
+    "turns": [
+      "What's the best time of year to visit Kyoto for cherry blossoms, generally speaking?"
+    ]
+  },
+  {
+    "session": "error-recovery",
+    "turns": [
+      "Convert 250 EUR to Martian credits.",
+      "Fine, convert it to Swiss francs instead."
+    ]
+  },
+  {
+    "session": "ambiguous-request",
+    "turns": [
+      "I want to go somewhere warm.",
+      "Somewhere in Europe, in 2 weeks, for about 5 days. I'll fly from Amsterdam and I'd rather not spend more than 700 EUR on the flight."
+    ]
+  }
+]
