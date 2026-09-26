@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travel Assistant</title>
+<style>
+  :root { --bg:#f5f4f0; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --accent:#1f5c3f; --accent-soft:#e3f0e8; --border:#e3e1da; --user:#1d1d1b; --tool:#f0ebd8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system, "Segoe UI", Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); background:var(--card); }
+  header h1 { font-size:17px; margin:0; font-weight:600; }
+  header .meta { font-size:12px; color:var(--muted); display:flex; gap:14px; align-items:center; }
+  header a { color:var(--accent); text-decoration:none; }
+  header button { border:1px solid var(--border); background:var(--card); border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; }
+  main { max-width:820px; margin:0 auto; padding:20px; }
+  #log { display:flex; flex-direction:column; gap:12px; min-height:50vh; }
+  .msg { padding:12px 14px; border-radius:10px; line-height:1.45; white-space:pre-wrap; max-width:88%; font-size:14.5px; }
+  .msg.user { align-self:flex-end; background:var(--user); color:#fff; }
+  .msg.bot { align-self:flex-start; background:var(--card); border:1px solid var(--border); }
+  .msg.pending { color:var(--muted); font-style:italic; }
+  .tools { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip { font-size:11.5px; background:var(--tool); border-radius:999px; padding:3px 9px; font-family:ui-monospace, Menlo, monospace; }
+  .trace { font-size:11.5px; margin-top:6px; }
+  .trace a { color:var(--accent); }
+  form { display:flex; gap:8px; margin-top:16px; position:sticky; bottom:0; background:var(--bg); padding:10px 0; }
+  textarea { flex:1; resize:none; padding:11px 12px; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:14.5px; min-height:48px; }
+  form button { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:0 18px; font-weight:600; cursor:pointer; }
+  form button:disabled { opacity:.5; cursor:default; }
+  .examples { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px; }
+  .examples button { border:1px solid var(--border); background:var(--accent-soft); border-radius:999px; padding:5px 11px; font-size:12.5px; cursor:pointer; color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Travel Assistant</h1>
+  <div class="meta">
+    <span>session <code id="session">new</code></span>
+    <a id="phoenix" href="http://localhost:6006" target="_blank" rel="noopener">Open Phoenix</a>
+    <button id="reset" type="button">New conversation</button>
+  </div>
+</header>
+<main>
+  <div class="examples" id="examples"></div>
+  <div id="log"></div>
+  <form id="form">
+    <textarea id="input" placeholder="Ask about flights, hotels, weather, attractions or budgets…" required></textarea>
+    <button id="send" type="submit">Send</button>
+  </form>
+</main>
+<script>
+  const EXAMPLES = [
+    "Find me a flight from Paris to Tokyo next month, economy, 2 passengers.",
+    "What's the weather like in Lisbon this weekend?",
+    "What should I visit in Rome?",
+    "How much is 800 EUR in Japanese yen?",
+    "I need a 4-star hotel in Barcelona for 3 nights starting in 10 days, under 200 EUR a night."
+  ];
+  const log = document.getElementById("log");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const send = document.getElementById("send");
+  const sessionLabel = document.getElementById("session");
+  let sessionId = null;
+  let phoenixBase = "http://localhost:6006";
+
+  fetch("/health").then(r => r.json()).then(h => {
+    phoenixBase = h.phoenix_endpoint || phoenixBase;
+    document.getElementById("phoenix").href = phoenixBase + "/projects";
+  }).catch(() => {});
+
+  const examples = document.getElementById("examples");
+  EXAMPLES.forEach(text => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = text;
+    b.onclick = () => { input.value = text; input.focus(); };
+    examples.appendChild(b);
+  });
+
+  function add(role, text, extra) {
+    const div = document.createElement("div");
+    div.className = "msg " + role + (extra && extra.pending ? " pending" : "");
+    div.textContent = text;
+    log.appendChild(div);
+    div.scrollIntoView({ behavior: "smooth", block: "end" });
+    return div;
+  }
+
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    add("user", message);
+    input.value = "";
+    send.disabled = true;
+    const pending = add("bot", "Thinking…", { pending: true });
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, session_id: sessionId })
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+      sessionId = data.session_id;
+      sessionLabel.textContent = sessionId.slice(0, 8);
+      pending.classList.remove("pending");
+      pending.textContent = data.response;
+      if (data.tool_calls.length) {
+        const tools = document.createElement("div");
+        tools.className = "tools";
+        data.tool_calls.forEach(call => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = call.name + "(" + Object.entries(call.args).map(([k, v]) => k + "=" + JSON.stringify(v)).join(", ") + ")";
+          tools.appendChild(chip);
+        });
+        pending.appendChild(tools);
+      }
+      const trace = document.createElement("div");
+      trace.className = "trace";
+      trace.innerHTML = 'trace <a href="' + phoenixBase + '/projects" target="_blank" rel="noopener">' + data.trace_id + "</a>";
+      pending.appendChild(trace);
+    } catch (error) {
+      pending.classList.remove("pending");
+      pending.textContent = "Error: " + error.message;
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  };
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); }
+  });
+
+  document.getElementById("reset").onclick = () => {
+    sessionId = null;
+    sessionLabel.textContent = "new";
+    log.innerHTML = "";
+    input.focus();
+  };
+</script>
+</body>
+</html>
