@@ -7,3 +7,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.env.phoenix
+.pytest_cache/
+.phoenix/
+
+.DS_Store
